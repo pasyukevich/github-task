@@ -1,0 +1,21 @@
+<section class="container">
+        <div class="row">
+
+            <button type="button" ng-disabled="isLeftButtonDisabled()"  
+            class="btn btn-primary btn-lg col col-xs-2 col-sm-2" ng-click="goToPrevRepo()">prev</button>
+
+            <button type="button" ng-click="goToSearchResults()" 
+            class="btn btn-primary col col-xs-2 col-sm-2 col-xs-offset-3">back to search results</button>
+
+            <button type="button" ng-disabled="isRightButtonDisabled()" 
+            class="btn btn-primary btn-lg col col-xs-2 col-sm-2 col-xs-offset-3" ng-click="goToNextRepo()">next</button>
+            
+        </div>
+        <div class="row">
+           <h2 class="text-center">{{repo.name}}</h2>
+           <p class="text-center">size: <span class="badge">{{repo.size}} kb</span><br>
+            created at : {{repo.created_at}} <br>
+            forks: <span class="badge">{{repo.forks}}kb</span>
+          </p>
+        </div>
+    </section>

@@ -1,0 +1,50 @@
+<section class="container">
+    <div ng-hide="repo">
+        <div class="row">
+            <button type="button" ng-disabled="isLeftButtonDisabled()" 
+            class="col col-xs-2 col-sm-2 btn btn-primary btn-lg" ng-click="goToPrevUser()">prev</button>
+
+            <button type="button" ng-click="goToSearchResults()" 
+            class="btn btn-primary col col-xs-2 col-sm-2 col-xs-offset-3">back to search results</button>
+
+            <button type="button" ng-disabled="isRightButtonDisabled()" 
+            class="col col-xs-2 col-sm-2 col-xs-offset-3 btn btn-primary btn-lg"
+                ng-click="goToNextUser()">next</button>
+
+        </div>
+        <div class="row">
+            <h2 class="text-center">{{user.login}}</h2>
+        </div>
+        <div class="row">
+            <img class="col col-xs-5 col-sm-5" ng-src="{{user.avatar_url}}" />
+            <ul class="list-group col col-xs-7 col-sm-7">
+                <h2 class="text-center">repos</h2>
+                <loading-directive ng-hide="userRepos"></loading-directive>
+                <li class="list-group-item" ng-repeat="repo in userRepos">
+                    <h3>
+                        <a ui-sref="main.user({id:user.id,repo:repo.name,inf:repo})">{{repo.name}}</a>
+                    </h3>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div ng-show="repo">
+        <div class="row">
+            
+            <button type="button" ng-click="goToUser()" 
+            class="btn btn-primary col col-xs-2 col-sm-2 col-xs-offset-5">back to user</button>
+
+        </div>
+        <div class="row">
+            <h2 class="text-center">{{repo.name}}</h2>
+            <p class="text-center">size:
+                <span class="badge">{{repo.size}} kb</span>
+                <br> created at : {{repo.created_at}}
+                <br> forks:
+                <span class="badge">{{repo.forks}}kb</span>
+            </p>
+        </div>
+
+    </div>
+</section>

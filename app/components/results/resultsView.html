@@ -1,0 +1,21 @@
+<section class="container">
+    <div class="row">
+        <aside class="col col-xs-2 col-sm-2">
+            <ul class="list-group">
+                <li class="list-group-item" ng-class="{selected:isActive('users')}">
+                    <a href ng-click="setTo('users')">users <span class="badge">{{usersAmount||0}}</span></a>
+                </li>
+                <li class="list-group-item" ng-class="{selected:isActive('repositories')}">
+                    <a href ng-click="setTo('repositories')">repos <span class="badge">{{reposAmount||0}}</span></a>
+                </li>
+                <li class="list-group-item" ng-class="{selected:isActive('issues')}">
+                    <a href ng-click="setTo('issues')">issues <span class="badge">{{issuesAmount||0}}</span></a>
+                </li>
+                <li class="list-group-item" ng-class="{selected:isActive('code')}">
+                    <a href ng-click="setTo('code')">code <span class="badge">{{codeAmount||0}}</span></a>
+                </li>
+            </ul>
+        </aside>
+        <ui-view></ui-view>
+    </div>
+</section>
