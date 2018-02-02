@@ -3,7 +3,7 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
         currentList = 'users',
         promiseStatus = [];
 
-    $http.defaults.headers.common.Authorization = 'token 14474ef8fc9ebbcfb9e203f52ca8b3da1cd61ce2';
+    
 
     function getListUrl(field, page) {
         switch (field) {
@@ -43,7 +43,7 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
             let list = dataFactory.getData(field, page),
                 getProm = $q.defer();
             if (!list) {
-                let url = this.getListUrl(field, page);
+                let url = getListUrl(field, page);
                 $http.get(url).then(response => {
                     dataFactory.setData(field, page, response.data.items);
                     list = dataFactory.getData(field, page);
