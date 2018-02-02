@@ -3,7 +3,8 @@ let gulp = require('gulp'),
   templateCache = require('gulp-angular-templatecache'),
   clean = require('gulp-clean'),
   concat = require('gulp-concat'),
-  livereload=require('gulp-livereload');
+  livereload=require('gulp-livereload'),
+  webserver = require('gulp-webserver');
 gulp.task('default', ['copyVendor','templateRefactoring','concat','copyIndex','copyVendorFonts','copyStyles']);
 gulp.task('copyVendor', (done) => {
   return gulp.src(vendor_files, {
@@ -50,7 +51,6 @@ const vendor_files = ['./node_modules/angular/angular.js',
   './node_modules/**/angular-ui-router.js',
   './node_modules/**/angular-aria.js',
   './node_modules/**/angular-animate.min.js',
-  './node_modules/**/angular-material.js',
   './node_modules/**/bootstrap.css',
   './node_modules/**/font-awesome.min.css'
 ];
@@ -73,13 +73,24 @@ gulp.task('copyIndex',['concat','templateRefactoring','copyVendorFonts','copySty
     .pipe(inject(vendorSources, {
       name: 'vendor',
       ignorePath: 'node_modules',
-      addPrefix: 'dist/vendor'
+      addPrefix: 'vendor'
     }))
     .pipe(inject(appSources, {
-      name: 'app'
+      name: 'app',
+      ignorePath: 'dist'
     }))
     .pipe(gulp.dest('./dist', {
       overwrite: true
+    }));
+});
+
+gulp.task('webserver', function() {
+  gulp.src('dist')
+    .pipe(webserver({
+      fallback: 'index.html',
+      livereload:{
+        enable:true
+      }
     }));
 });
 
