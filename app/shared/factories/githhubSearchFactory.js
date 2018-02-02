@@ -1,33 +1,37 @@
 angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFactory) => {
-    let prev = null,
+    let previous = null,
         currentList = 'users',
-        promiseStatus = [];
+        promiseStatus = [],
+        users,
+        repos,
+        issues,
+        code;
 
-    
+    $http.defaults.headers.common.Authorization = 'token 3f99eb6ad10154e49c90ef1fc141024d4115677b';
 
-    function getListUrl(field, page) {
+    function getListUrl(field, page,searchWord) {
         switch (field) {
             case 'code':
-                return `https://api.github.com/search/code?q=${prev}+repo:jquery/jquery&page=${page}`;
+                return `https://api.github.com/search/code?q=${previous}+repo:jquery/jquery&page=${page}`;
                 break;
             default:
-                return `https://api.github.com/search/${field}?q=${prev}&page=${page}`;
+                return `https://api.github.com/search/${field}?q=${searchWord}&page=${page}`;
                 break;
         }
     };
     return {
         getSearchWord(){
-          return prev;
+          return previous;
         },
         getSearchResult(searchWord) {
             promiseStatus[0] = false;
-            if (prev !== searchWord) {
-                prev = searchWord;
+            if (previous !== searchWord) {
+                previous = searchWord;
                 promiseStatus[0] = true;
-                users = $http.get(`https://api.github.com/search/users?q=${searchWord}`);
-                repos = $http.get(`https://api.github.com/search/repositories?q=${searchWord}`);
-                issues = $http.get(`https://api.github.com/search/issues?q=${searchWord}`);
-                code = $http.get(`https://api.github.com/search/code?q=${searchWord}+repo:jquery/jquery`);
+                users = $http.get(getListUrl('users', 0,searchWord));
+                repos = $http.get(getListUrl('repositories', 0,searchWord));
+                issues = $http.get(getListUrl('issues', 0,searchWord));
+                code = $http.get(getListUrl('code', 0,searchWord));
 
                 prom = $q.all({
                     users,
@@ -40,7 +44,7 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
             return prom;
         },
         getList(field, page) {
-            let list = dataFactory.getData(field, page),
+            let list = dataFactory.getData(field, page,previous),
                 getProm = $q.defer();
             if (!list) {
                 let url = getListUrl(field, page);
