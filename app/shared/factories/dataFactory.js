@@ -1,4 +1,5 @@
 angular.module('githubSearch').factory('dataFactory', () => {
+    const MAX_AMOUNT= 1000;
     let cache = {
         users: {},
         repositories: {},
@@ -17,16 +18,16 @@ angular.module('githubSearch').factory('dataFactory', () => {
             clearAll();
             cache.users[1] = usersData.items;
             cache.users.total = usersData.total_count;
-            cache.users.amount = cache.users.total > 1000 ? 1000 : cache.users.total;
+            cache.users.amount = cache.users.total > MAX_AMOUNT ? MAX_AMOUNT : cache.users.total;
             cache.repositories[1] = reposData.items;
             cache.repositories.total = reposData.total_count;
-            cache.repositories.amount = cache.repositories.total > 1000 ? 1000 : cache.repositories.total;
+            cache.repositories.amount = cache.repositories.total > MAX_AMOUNT ? MAX_AMOUNT : cache.repositories.total;
             cache.issues[1] = issuesData.items;
             cache.issues.total = issuesData.total_count;
-            cache.issues.amount = cache.issues.total > 1000 ? 1000 : cache.issues.total;
+            cache.issues.amount = cache.issues.total > MAX_AMOUNT ? MAX_AMOUNT : cache.issues.total;
             cache.code[1] = codeData.items;
             cache.code.total = codeData.total_count;
-            cache.code.amount = cache.code.total > 1000 ? 1000 : cache.code.total;
+            cache.code.amount = cache.code.total > MAX_AMOUNT ? MAX_AMOUNT : cache.code.total;
         },
         getData(field, page) {
             return cache[field][page];
