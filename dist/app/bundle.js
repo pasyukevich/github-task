@@ -44,13 +44,140 @@ angular.module('githubSearch').run( ($uiRouter)=> {
     });
     el.className = 'statevis';
 });
-angular.module('githubSearch').directive('loadingDirective',()=>{
-    return{
-      scope:{},
-      restrict:'E',
-      templateUrl:'components/loading/loadingView.html'
+angular.module('githubSearch').factory('dataFactory', () => {
+    const MAX_AMOUNT= 1000;
+    let cache = {
+        users: {},
+        repositories: {},
+        issues: {},
+        code: {}
+    };
+    function clearAll() {
+        cache.users = {};
+        cache.repositories = {};
+        cache.users = {};
+        cache.issues = {};
+    };
+
+    return {
+        setAll(usersData, reposData, issuesData, codeData) {
+            clearAll();
+            cache.users[1] = usersData.items;
+            cache.users.total = usersData.total_count;
+            cache.users.amount = cache.users.total > MAX_AMOUNT ? MAX_AMOUNT : cache.users.total;
+            cache.repositories[1] = reposData.items;
+            cache.repositories.total = reposData.total_count;
+            cache.repositories.amount = cache.repositories.total > MAX_AMOUNT ? MAX_AMOUNT : cache.repositories.total;
+            cache.issues[1] = issuesData.items;
+            cache.issues.total = issuesData.total_count;
+            cache.issues.amount = cache.issues.total > MAX_AMOUNT ? MAX_AMOUNT : cache.issues.total;
+            cache.code[1] = codeData.items;
+            cache.code.total = codeData.total_count;
+            cache.code.amount = cache.code.total > MAX_AMOUNT ? MAX_AMOUNT : cache.code.total;
+        },
+        getData(field, page) {
+            return cache[field][page];
+        },
+        setData(field, page, data) { //data should be an  array of items
+            cache[field][page] = data;
+        },
+        getItemsAmount(field) {
+            return cache[field].amount;
+        },
+        getItemsTotal(field) {
+            return cache[field].total;
+        },
+        getUserArrayAndIndexById(id) {
+            if (Object.keys(cache.users).length === 0) return [null, null];
+            for (let page in cache.users) {
+                for (let user in cache.users[page]) {
+                    if (cache.users[page][user].id == id) return [page, user];
+                }
+            }
+        },
+        getRepoArrayAndIndexById(id) {
+            if (Object.keys(cache.repositories).length === 0) return [null, null];
+            for (let page in cache.repositories) {
+                for (let repo in cache.repositories[page]) {
+                    if (cache.repositories[page][repo].id == id) return [page, repo]
+                }
+            }
+        }
     }
- });
+});
+angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFactory) => {
+    let previous = null,
+        currentList = 'users',
+        promiseStatus = [],
+        users,
+        repos,
+        issues,
+        code;
+
+    $http.defaults.headers.common.Authorization = 'token 3f99eb6ad10154e49c90ef1fc141024d4115677b';
+
+    function getListUrl(field, page,searchWord) {
+        switch (field) {
+            case 'code':
+                return `https://api.github.com/search/code?q=${previous}+repo:jquery/jquery&page=${page}`;
+                break;
+            default:
+                return `https://api.github.com/search/${field}?q=${searchWord}&page=${page}`;
+                break;
+        }
+    };
+    return {
+        getSearchWord(){
+          return previous;
+        },
+        getSearchResult(searchWord) {
+            promiseStatus[0] = false;
+            if (previous !== searchWord) {
+                previous = searchWord;
+                promiseStatus[0] = true;
+                users = $http.get(getListUrl('users', 0,searchWord));
+                repos = $http.get(getListUrl('repositories', 0,searchWord));
+                issues = $http.get(getListUrl('issues', 0,searchWord));
+                code = $http.get(getListUrl('code', 0,searchWord));
+
+                prom = $q.all({
+                    users,
+                    repos,
+                    issues,
+                    code,
+                    promiseStatus
+                });
+            }
+            return prom;
+        },
+        getList(field, page) {
+            let list = dataFactory.getData(field, page,previous),
+                getProm = $q.defer();
+            if (!list) {
+                let url = getListUrl(field, page);
+                $http.get(url).then(response => {
+                    dataFactory.setData(field, page, response.data.items);
+                    list = dataFactory.getData(field, page);
+                    console.log('start the getList promise')
+                    getProm.resolve(list);
+                });
+            } else getProm.resolve(list);
+            return getProm.promise;
+        },
+        getCurrentList() {
+            return currentList;
+        },
+        setCurrentList(list) {
+            currentList = list;
+        },
+        getReposListForUser(login){
+            return $http.get(`https://api.github.com/users/${login}/repos`);
+        },
+        getUserRepo(login,repo){
+            return $http.get(`https://api.github.com/repos/${login}/${repo}`);
+        }
+    }
+});
 angular.module('githubSearch').controller('listController', ($scope, githubSearchFactory, dataFactory, $stateParams, $state) => {
     let currentPage = $stateParams.page || 1,
         currentList = githubSearchFactory.getCurrentList();
@@ -92,6 +219,13 @@ angular.module('githubSearch').directive('listDirective',()=>{
       restrict:'E',
       controller:'listController',
       templateUrl:'components/list/listView.html'
+    }
+ });
+angular.module('githubSearch').directive('loadingDirective',()=>{
+    return{
+      scope:{},
+      restrict:'E',
+      templateUrl:'components/loading/loadingView.html'
     }
  });
 angular.module('githubSearch').controller('repoController', ($scope, githubSearchFactory, dataFactory, $state, $stateParams) => {
@@ -204,6 +338,24 @@ angular.module('githubSearch').directive('resultsDirective',()=>{
       templateUrl:'components/results/resultsView.html'
     }
  });
+angular.module('githubSearch').controller('searchController', ($scope, githubSearchFactory, $state,dataFactory) => {
+    $scope.makeSearch = function () {
+        if ($scope.searchRequest !== undefined && $scope.searchRequest !== '') {
+            $state.go('main.results', {
+                query: $scope.searchRequest,
+                page: ''
+            });
+        }
+    }
+});
+angular.module('githubSearch').directive('searchDirective',()=>{
+   return{
+     scope:{},
+     restrict:'E',
+     controller:'searchController',
+     templateUrl:'components/search/searchView.html'
+   }
+});
 angular.module('githubSearch').controller('userController', ($scope, githubSearchFactory, dataFactory, $state, $stateParams) => {
     let currentPage,
         currentUser,
@@ -298,150 +450,3 @@ angular.module('githubSearch').directive('userDirective',()=>{
       templateUrl:'components/user/userView.html'
     }
  });
-angular.module('githubSearch').controller('searchController', ($scope, githubSearchFactory, $state,dataFactory) => {
-    $scope.makeSearch = function () {
-        if ($scope.searchRequest !== undefined && $scope.searchRequest !== '') {
-            $state.go('main.results', {
-                query: $scope.searchRequest,
-                page: ''
-            });
-        }
-    }
-});
-angular.module('githubSearch').directive('searchDirective',()=>{
-   return{
-     scope:{},
-     restrict:'E',
-     controller:'searchController',
-     templateUrl:'components/search/searchView.html'
-   }
-});
-angular.module('githubSearch').factory('dataFactory', () => {
-    let cache = {
-        users: {},
-        repositories: {},
-        issues: {},
-        code: {}
-    };
-    function clearAll() {
-        cache.users = {};
-        cache.repositories = {};
-        cache.users = {};
-        cache.issues = {};
-    };
-
-    return {
-        setAll(usersData, reposData, issuesData, codeData) {
-            clearAll();
-            cache.users[1] = usersData.items;
-            cache.users.total = usersData.total_count;
-            cache.users.amount = cache.users.total > 1000 ? 1000 : cache.users.total;
-            cache.repositories[1] = reposData.items;
-            cache.repositories.total = reposData.total_count;
-            cache.repositories.amount = cache.repositories.total > 1000 ? 1000 : cache.repositories.total;
-            cache.issues[1] = issuesData.items;
-            cache.issues.total = issuesData.total_count;
-            cache.issues.amount = cache.issues.total > 1000 ? 1000 : cache.issues.total;
-            cache.code[1] = codeData.items;
-            cache.code.total = codeData.total_count;
-            cache.code.amount = cache.code.total > 1000 ? 1000 : cache.code.total;
-        },
-        getData(field, page) {
-            return cache[field][page];
-        },
-        setData(field, page, data) { //data should be an  array of items
-            cache[field][page] = data;
-        },
-        getItemsAmount(field) {
-            return cache[field].amount;
-        },
-        getItemsTotal(field) {
-            return cache[field].total;
-        },
-        getUserArrayAndIndexById(id) {
-            if (Object.keys(cache.users).length === 0) return [null, null];
-            for (let page in cache.users) {
-                for (let user in cache.users[page]) {
-                    if (cache.users[page][user].id == id) return [page, user];
-                }
-            }
-        },
-        getRepoArrayAndIndexById(id) {
-            if (Object.keys(cache.repositories).length === 0) return [null, null];
-            for (let page in cache.repositories) {
-                for (let repo in cache.repositories[page]) {
-                    if (cache.repositories[page][repo].id == id) return [page, repo]
-                }
-            }
-        }
-    }
-});
-angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFactory) => {
-    let prev = null,
-        currentList = 'users',
-        promiseStatus = [];
-
-    
-
-    function getListUrl(field, page) {
-        switch (field) {
-            case 'code':
-                return `https://api.github.com/search/code?q=${prev}+repo:jquery/jquery&page=${page}`;
-                break;
-            default:
-                return `https://api.github.com/search/${field}?q=${prev}&page=${page}`;
-                break;
-        }
-    };
-    return {
-        getSearchWord(){
-          return prev;
-        },
-        getSearchResult(searchWord) {
-            promiseStatus[0] = false;
-            if (prev !== searchWord) {
-                prev = searchWord;
-                promiseStatus[0] = true;
-                users = $http.get(`https://api.github.com/search/users?q=${searchWord}`);
-                repos = $http.get(`https://api.github.com/search/repositories?q=${searchWord}`);
-                issues = $http.get(`https://api.github.com/search/issues?q=${searchWord}`);
-                code = $http.get(`https://api.github.com/search/code?q=${searchWord}+repo:jquery/jquery`);
-
-                prom = $q.all({
-                    users,
-                    repos,
-                    issues,
-                    code,
-                    promiseStatus
-                });
-            }
-            return prom;
-        },
-        getList(field, page) {
-            let list = dataFactory.getData(field, page),
-                getProm = $q.defer();
-            if (!list) {
-                let url = getListUrl(field, page);
-                $http.get(url).then(response => {
-                    dataFactory.setData(field, page, response.data.items);
-                    list = dataFactory.getData(field, page);
-                    console.log('start the getList promise')
-                    getProm.resolve(list);
-                });
-            } else getProm.resolve(list);
-            return getProm.promise;
-        },
-        getCurrentList() {
-            return currentList;
-        },
-        setCurrentList(list) {
-            currentList = list;
-        },
-        getReposListForUser(login){
-            return $http.get(`https://api.github.com/users/${login}/repos`);
-        },
-        getUserRepo(login,repo){
-            return $http.get(`https://api.github.com/repos/${login}/${repo}`);
-        }
-    }
-});
