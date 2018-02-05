@@ -19,6 +19,11 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
                 break;
         }
     };
+
+    function getSearchPromise(url){
+      return $http.get(url);
+    }
+
     return {
         getSearchWord(){
           return previous;
@@ -28,10 +33,10 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
             if (previous !== searchWord) {
                 previous = searchWord;
                 promiseStatus[0] = true;
-                users = $http.get(getListUrl('users', 0,searchWord));
-                repos = $http.get(getListUrl('repositories', 0,searchWord));
-                issues = $http.get(getListUrl('issues', 0,searchWord));
-                code = $http.get(getListUrl('code', 0,searchWord));
+                users = getSearchPromise(getListUrl('users', 0,searchWord));
+                repos = getSearchPromise(getListUrl('repositories', 0,searchWord));
+                issues = getSearchPromise(getListUrl('issues', 0,searchWord));
+                code = getSearchPromise(getListUrl('code', 0,searchWord));
 
                 prom = $q.all({
                     users,
@@ -48,10 +53,9 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
                 getProm = $q.defer();
             if (!list) {
                 let url = getListUrl(field, page);
-                $http.get(url).then(response => {
+                getSearchPromise(url).then(response => {
                     dataFactory.setData(field, page, response.data.items);
                     list = dataFactory.getData(field, page);
-                    console.log('start the getList promise')
                     getProm.resolve(list);
                 });
             } else getProm.resolve(list);
