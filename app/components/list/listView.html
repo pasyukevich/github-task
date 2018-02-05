@@ -1,6 +1,6 @@
-<div class="col col-xs-10 col-sm-10">
+<div class="col col-xs-10 col-sm-10" ng-switch="currentListName">
 
-    <div ng-show="isActive('users')">
+    <div ng-switch-when="users">
         <loading-directive ng-hide="users"></loading-directive>
         <label class="col col-xs-offset-7" ng-show="users">Filter :
             <input ng-model="usersSearch.login">
@@ -18,7 +18,7 @@
         </ul>
     </div>
 
-    <div ng-show="isActive('repositories')">
+    <div  ng-switch-when="repositories">
         <loading-directive ng-hide="repositories"></loading-directive>
         <button type="button" class="btn btn-primary" ng-show="repositories" ng-click="sortBy('name')">Sort by name</button>
         <button type="button" class="btn btn-primary" ng-show="repositories" ng-click="sortBy('forks')">Sort by forks</button>
@@ -39,7 +39,7 @@
         </ul>
     </div>
 
-    <div ng-show="isActive('issues')">
+    <div ng-switch-when="issues">
         <loading-directive ng-hide="issues"></loading-directive>
         <ul class="list-group">
             <li class="list-group-item" ng-repeat="issue in issues">
@@ -50,7 +50,7 @@
         </ul>
     </div>
 
-    <div ng-show="isActive('code')">
+    <div ng-switch-when="code">
         <loading-directive ng-hide="code"></loading-directive>
         <ul class="list-group">
             <li class="list-group-item" ng-repeat="result in code">
