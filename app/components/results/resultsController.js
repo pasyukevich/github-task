@@ -13,8 +13,8 @@ angular.module('githubSearch').controller('resultsController', ($scope, githubSe
         $state.go('.list');
     })
 
-    $scope.setTo = function (setList) {
-        githubSearchFactory.setCurrentListName(setList);
+    $scope.setTo = function (ListName) {
+        githubSearchFactory.setCurrentListName(ListName);
         $state.go('main.results', {
             query,
             page: ''
