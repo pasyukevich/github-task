@@ -1,5 +1,5 @@
 <div class="col col-xs-10 col-sm-10">
-    
+
     <div ng-show="isActive('users')">
         <loading-directive ng-hide="users"></loading-directive>
         <label class="col col-xs-offset-7" ng-show="users">Filter :
@@ -8,10 +8,10 @@
         <ul class="list-group">
             <li class="list-group-item" ng-repeat="user in users |filter:usersSearch">
                 <b>User login:
-                    <b>
-                        <i>
-                            <a ui-sref="main.user({id:user.id,repo:''})"> {{user.login}}</a>
-                        </i>
+                    <i>
+                        <a ui-sref="main.user({id:user.id,repo:''})"> {{user.login}}</a>
+                    </i>
+                </b>
             </li>
             <ul class="pagination-sm" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage" ng-change="nextPage()"
                 total-items="totalItems" max-size="maxSize" ng-model="currentPage"></ul>
