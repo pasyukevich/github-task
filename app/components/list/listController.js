@@ -1,6 +1,6 @@
 angular.module('githubSearch').controller('listController', ($scope, githubSearchFactory, dataFactory, $stateParams, $state) => {
     let currentPage = $stateParams.page || 1,
-        currentList = githubSearchFactory.getCurrentList();
+        currentList = githubSearchFactory.getCurrentListName();
 
     $scope.itemsPerPage = 30;
     $scope.currentPage = currentPage;
@@ -21,7 +21,7 @@ angular.module('githubSearch').controller('listController', ($scope, githubSearc
             });
         },
         $scope.isActive = function (checkList) {
-            return githubSearchFactory.getCurrentList() === checkList;
+            return githubSearchFactory.getCurrentListName() === checkList;
         }
 
 

@@ -61,10 +61,10 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
             } else getProm.resolve(list);
             return getProm.promise;
         },
-        getCurrentList() {
+        getCurrentListName() {
             return currentList;
         },
-        setCurrentList(list) {
+        setCurrentListName(list) {
             currentList = list;
         },
         getReposListForUser(login){

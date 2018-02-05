@@ -14,7 +14,7 @@ angular.module('githubSearch').controller('resultsController', ($scope, githubSe
     })
 
     $scope.setTo = function (setList) {
-        githubSearchFactory.setCurrentList(setList);
+        githubSearchFactory.setCurrentListName(setList);
         $state.go('main.results', {
             query,
             page: ''
@@ -25,6 +25,6 @@ angular.module('githubSearch').controller('resultsController', ($scope, githubSe
     }
 
     $scope.isActive = function (checkList) {
-        return githubSearchFactory.getCurrentList() === checkList;
+        return githubSearchFactory.getCurrentListName() === checkList;
     }
 });
