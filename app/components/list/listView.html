@@ -13,12 +13,10 @@
                     </i>
                 </b>
             </li>
-            <ul class="pagination-sm" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage" ng-change="nextPage()"
-                total-items="totalItems" max-size="maxSize" ng-model="currentPage"></ul>
         </ul>
     </div>
 
-    <div  ng-switch-when="repositories">
+    <div ng-switch-when="repositories">
         <loading-directive ng-hide="repositories"></loading-directive>
         <button type="button" class="btn btn-primary" ng-show="repositories" ng-click="sortBy('name')">Sort by name</button>
         <button type="button" class="btn btn-primary" ng-show="repositories" ng-click="sortBy('forks')">Sort by forks</button>
@@ -34,8 +32,6 @@
                 </b>
                 <i>forks: {{repo.forks}}, open issues: {{repo.open_issues}}, size: {{repo.size}}</i>
             </li>
-            <ul class="pagination-sm" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage" ng-change="nextPage()"
-                total-items="totalItems" max-size="maxSize" ng-model="currentPage"></ul>
         </ul>
     </div>
 
@@ -45,8 +41,6 @@
             <li class="list-group-item" ng-repeat="issue in issues">
                 <h3>issue: {{issue.id}}</h3>
             </li>
-            <ul class="pagination-sm" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage" ng-change="nextPage()"
-                total-items="totalItems" max-size="maxSize" ng-model="currentPage"></ul>
         </ul>
     </div>
 
@@ -56,9 +50,9 @@
             <li class="list-group-item" ng-repeat="result in code">
                 <h3>code: {{result.name}}</h3>
             </li>
-            <ul class="pagination-sm" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage" ng-change="nextPage()"
-                total-items="totalItems" max-size="maxSize" ng-model="currentPage"></ul>
         </ul>
     </div>
 
+    <ul class="pagination-sm" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage" ng-change="nextPage()"
+                total-items="totalItems" max-size="maxSize" ng-model="currentPage"></ul>
 </div>
