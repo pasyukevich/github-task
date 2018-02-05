@@ -1,5 +1,7 @@
-angular.module('githubSearch').controller('resultsController', ($scope, githubSearchFactory, dataFactory, $stateParams, $state) => {
+angular.module('githubSearch').controller('resultsController', ($scope,items, githubSearchFactory, dataFactory, $stateParams, $state) => {
     let query = $stateParams.query;
+
+    $scope.items=items;
 
     githubSearchFactory.getSearchResult(query).then(response => {
         if (response.promiseStatus[0]) {
