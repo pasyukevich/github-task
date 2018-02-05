@@ -1,8 +1,9 @@
 angular.module('githubSearch').controller('listController', ($scope, githubSearchFactory, dataFactory, $stateParams, $state) => {
+    const SIZE_OF_PAGE=30;
     let currentPage = $stateParams.page || 1,
         currentList = githubSearchFactory.getCurrentListName();
 
-    $scope.itemsPerPage = 30;
+    $scope.itemsPerPage = SIZE_OF_PAGE;
     $scope.currentPage = currentPage;
     $scope.maxSize = 10;
     $scope.totalItems = dataFactory.getItemsAmount(currentList);

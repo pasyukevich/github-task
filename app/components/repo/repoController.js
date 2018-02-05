@@ -1,4 +1,5 @@
 angular.module('githubSearch').controller('repoController', ($scope, githubSearchFactory, dataFactory, $state, $stateParams) => {
+    const SIZE_OF_PAGE=30;
     let currentPage,
         currentRepo,
         repos;
@@ -33,7 +34,7 @@ angular.module('githubSearch').controller('repoController', ($scope, githubSearc
 
     $scope.goToNextRepo = function () {
         currentRepo++;
-        if (currentRepo > 29 || currentRepo == repos.length) {
+        if (currentRepo > SIZE_OF_PAGE-1 || currentRepo == repos.length) {
             githubSearchFactory.getList('repositories', ++currentPage).then(response => {
                 repos = response;
                 changeRepo(repos[0].id);
@@ -48,7 +49,7 @@ angular.module('githubSearch').controller('repoController', ($scope, githubSearc
         if (currentRepo < 0) {
             githubSearchFactory.getList('repositories', --currentPage).then(response => {
                 repos = response;
-                changeRepo(repos[29].id);
+                changeRepo(repos[SIZE_OF_PAGE-1].id);
             })
         } else changeRepo(repos[currentRepo].id);
     }

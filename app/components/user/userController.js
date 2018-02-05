@@ -1,4 +1,5 @@
 angular.module('githubSearch').controller('userController', ($scope, githubSearchFactory, dataFactory, $state, $stateParams) => {
+    const SIZE_OF_PAGE = 30;
     let currentPage,
         currentUser,
         users;
@@ -47,7 +48,7 @@ angular.module('githubSearch').controller('userController', ($scope, githubSearc
     $scope.goToNextUser = function () {
         currentUser++;
         console.log(currentUser);
-        if (currentUser > 29 || currentUser == users.length) {
+        if (currentUser > SIZE_OF_PAGE-1 || currentUser == users.length) {
             githubSearchFactory.getList('users', ++currentPage).then(response => {
                 users = response;
                 changeUser(users[0].id);
@@ -62,7 +63,7 @@ angular.module('githubSearch').controller('userController', ($scope, githubSearc
         if (currentUser < 0) {
             githubSearchFactory.getList('users', --currentPage).then(response => {
                 users = response;
-                changeUser(users[29].id);
+                changeUser(users[SIZE_OF_PAGE-1].id);
             })
         } else changeUser(users[currentUser].id);
     }
