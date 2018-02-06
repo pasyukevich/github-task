@@ -36,22 +36,67 @@ angular.module('githubSearch').config(function ($stateProvider, $urlRouterProvid
     $urlRouterProvider.when('', '/');
     $urlRouterProvider.otherwise('/NotFound');
 });
-angular.module('githubSearch').run( ($uiRouter)=> {
-    let StateTree = window['ui-router-visualizer'].StateTree;
-    let el = StateTree.create($uiRouter, null, {
-        height: 300,
-        width: 300
+angular.module('githubSearch').directive('loadingDirective',()=>{
+    return{
+      scope:{},
+      restrict:'E',
+      templateUrl:'components/loading/loadingView.html'
+    }
+ });
+angular.module('githubSearch').controller('listController', ($scope, githubSearchFactory, dataFactory, $stateParams, $state) => {
+    const SIZE_OF_PAGE = 30;
+    let currentPage = $stateParams.page || 1,
+        currentList = githubSearchFactory.getCurrentListName();
+
+    $scope.currentListName = githubSearchFactory.getCurrentListName();
+
+    $scope.itemsPerPage = SIZE_OF_PAGE;
+    $scope.currentPage = currentPage;
+    $scope.maxSize = 10;
+    $scope.totalItems = dataFactory.getItemsAmount(currentList);
+
+    if($scope.totalItems==0) $scope.listIsEmpty=true;
+    else $scope.listIsEmpty=false;
+
+    githubSearchFactory.getList(currentList, currentPage).then(response => {
+        $scope[currentList] = response;
     });
-    el.className = 'statevis';
+    
+
+    $scope.nextPage = function () {
+        $state.go('main.results', {
+            query: $stateParams.query,
+            page: $scope.currentPage > 1 ? $scope.currentPage : ''
+        }, {
+            reload: true
+        });
+    }
+
+    $scope.propertyName = '';
+    $scope.reverse = true;
+
+    $scope.sortBy = function (propertyName) {
+        $scope.reverse = ($scope.propertyName === propertyName) ? !$scope.reverse : false;
+        $scope.propertyName = propertyName;
+    };
 });
+angular.module('githubSearch').directive('listDirective',()=>{
+    return{
+      scope:{},
+      restrict:'E',
+      controller:'listController',
+      templateUrl:'components/list/listView.html'
+    }
+ });
 angular.module('githubSearch').factory('dataFactory', () => {
-    const MAX_AMOUNT= 1000;
+    const MAX_AMOUNT = 1000;
     let cache = {
         users: {},
         repositories: {},
         issues: {},
         code: {}
     };
+
     function clearAll() {
         cache.users = {};
         cache.repositories = {};
@@ -60,26 +105,29 @@ angular.module('githubSearch').factory('dataFactory', () => {
     };
 
     return {
-        setAll(usersData, reposData, issuesData, codeData) {
+        setAll(usersData, repositoriesData, issuesData, codeData) {
+            let data = {
+                    users: usersData,
+                    repositories: repositoriesData,
+                    issues: issuesData,
+                    code: codeData
+                },
+                amount;
+
             clearAll();
-            cache.users[1] = usersData.items;
-            cache.users.total = usersData.total_count;
-            cache.users.amount = cache.users.total > MAX_AMOUNT ? MAX_AMOUNT : cache.users.total;
-            cache.repositories[1] = reposData.items;
-            cache.repositories.total = reposData.total_count;
-            cache.repositories.amount = cache.repositories.total > MAX_AMOUNT ? MAX_AMOUNT : cache.repositories.total;
-            cache.issues[1] = issuesData.items;
-            cache.issues.total = issuesData.total_count;
-            cache.issues.amount = cache.issues.total > MAX_AMOUNT ? MAX_AMOUNT : cache.issues.total;
-            cache.code[1] = codeData.items;
-            cache.code.total = codeData.total_count;
-            cache.code.amount = cache.code.total > MAX_AMOUNT ? MAX_AMOUNT : cache.code.total;
+            
+            for (let field in cache) {
+                this.setData(field, '1', data[field].items);
+                this.setData(field, 'total', data[field].total_count);
+                amount = cache[field].total > MAX_AMOUNT ? MAX_AMOUNT : cache[field].total;
+                this.setData(field, 'amount', amount);
+            }
         },
         getData(field, page) {
             return cache[field][page];
         },
-        setData(field, page, data) { //data should be an  array of items
-            cache[field][page] = data;
+        setData(field, nestedField, data) {
+            cache[field][nestedField] = data;
         },
         getItemsAmount(field) {
             return cache[field].amount;
@@ -126,19 +174,24 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
                 break;
         }
     };
+
+    function getSearchPromise(url){
+      return $http.get(url);
+    }
+
     return {
         getSearchWord(){
           return previous;
         },
         getSearchResult(searchWord) {
-            promiseStatus[0] = false;
+            promiseStatus[0] = false;   // this value display did we make new get request or we use previous
             if (previous !== searchWord) {
                 previous = searchWord;
                 promiseStatus[0] = true;
-                users = $http.get(getListUrl('users', 0,searchWord));
-                repos = $http.get(getListUrl('repositories', 0,searchWord));
-                issues = $http.get(getListUrl('issues', 0,searchWord));
-                code = $http.get(getListUrl('code', 0,searchWord));
+                users = getSearchPromise(getListUrl('users', 0,searchWord));
+                repos = getSearchPromise(getListUrl('repositories', 0,searchWord));
+                issues = getSearchPromise(getListUrl('issues', 0,searchWord));
+                code = getSearchPromise(getListUrl('code', 0,searchWord));
 
                 prom = $q.all({
                     users,
@@ -154,20 +207,19 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
             let list = dataFactory.getData(field, page,previous),
                 getProm = $q.defer();
             if (!list) {
-                let url = getListUrl(field, page);
-                $http.get(url).then(response => {
+                let url = getListUrl(field, page,previous);
+                getSearchPromise(url).then(response => {
                     dataFactory.setData(field, page, response.data.items);
                     list = dataFactory.getData(field, page);
-                    console.log('start the getList promise')
                     getProm.resolve(list);
                 });
             } else getProm.resolve(list);
             return getProm.promise;
         },
-        getCurrentList() {
+        getCurrentListName() {
             return currentList;
         },
-        setCurrentList(list) {
+        setCurrentListName(list) {
             currentList = list;
         },
         getReposListForUser(login){
@@ -178,57 +230,59 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
         }
     }
 });
-angular.module('githubSearch').controller('listController', ($scope, githubSearchFactory, dataFactory, $stateParams, $state) => {
-    let currentPage = $stateParams.page || 1,
-        currentList = githubSearchFactory.getCurrentList();
-
-    $scope.itemsPerPage = 30;
-    $scope.currentPage = currentPage;
-    $scope.maxSize = 10;
-    $scope.totalItems = dataFactory.getItemsAmount(currentList);
-
-    githubSearchFactory.getList(currentList, currentPage).then(response => {
-        $scope[currentList] = response;
-    });
-
-
-    $scope.nextPage = function () {
-            $state.go('main.results', {
-                query: $stateParams.query,
-                page: $scope.currentPage > 1 ? $scope.currentPage : ''
-            }, {
-                reload: true
-            });
-        },
-        $scope.isActive = function (checkList) {
-            return githubSearchFactory.getCurrentList() === checkList;
-        }
-
-
-    $scope.propertyName = 'forks';
-    $scope.reverse = true;
+angular.module('githubSearch').factory('listItemFactory', ($state,dataFactory,githubSearchFactory) => {
+    function changeCurrentItem(stateName,id){
+        $state.go(stateName, {
+            id
+        }, {
+            reload: true
+        });
+    }
     
-    $scope.sortBy = function (propertyName) {
-        $scope.reverse = ($scope.propertyName === propertyName) ? !$scope.reverse : false;
-        $scope.propertyName = propertyName;
-    };
+    function getStateName(type){
+         switch(type){
+             case 'repositories':
+                  return `main.repo`;
+                  break;
+             case 'users':
+                   return 'main.user';
+                   break;     
+         }
+
+    }
+    return {
+        isRightButtonDisabled(currentItemNumber,type){
+            let amount = dataFactory.getItemsAmount(type);
+            return currentItemNumber == amount - 1;
+        },
+        isLeftButtonDisabled (cyrrentItemNumber,currentPageNumber) {
+            return cyrrentItemNumber == 0 && currentPageNumber == 1;
+        },
+        goToNextItem(currentItemNumber,currentPage,SIZE_OF_PAGE,items,type){
+            let stateName=getStateName(type)
+            currentItemNumber++;
+            if(currentItemNumber>SIZE_OF_PAGE-1||currentItemNumber==items.length){
+                githubSearchFactory.getList(type, ++currentPage).then(response => {
+                    items = response;
+                    changeCurrentItem(stateName,items[0].id);
+                });
+            } else changeCurrentItem(stateName,items[currentItemNumber].id);
+        },
+        goToPreviousItem(currentItemNumber,currentPage,SIZE_OF_PAGE,items,type){
+            let stateName=getStateName(type);
+            currentItemNumber--;
+            if(currentItemNumber<0){
+                githubSearchFactory.getList(type, --currentPage).then(response => {
+                    items = response;
+                    changeCurrentItem(stateName,items[SIZE_OF_PAGE-1].id);
+                })
+            }else changeCurrentItem(stateName,items[currentItemNumber].id);
+        }
+    }
 });
-angular.module('githubSearch').directive('listDirective',()=>{
-    return{
-      scope:{},
-      restrict:'E',
-      controller:'listController',
-      templateUrl:'components/list/listView.html'
-    }
- });
-angular.module('githubSearch').directive('loadingDirective',()=>{
-    return{
-      scope:{},
-      restrict:'E',
-      templateUrl:'components/loading/loadingView.html'
-    }
- });
-angular.module('githubSearch').controller('repoController', ($scope, githubSearchFactory, dataFactory, $state, $stateParams) => {
+angular.module('githubSearch').controller('repoController', ($scope, listItemFactory, githubSearchFactory, dataFactory, $state, $stateParams) => {
+    const SIZE_OF_PAGE = 30;
+    
     let currentPage,
         currentRepo,
         repos;
@@ -237,13 +291,6 @@ angular.module('githubSearch').controller('repoController', ($scope, githubSearc
 
     [currentPage, currentRepo] = dataFactory.getRepoArrayAndIndexById($scope.repoId);
 
-    function changeRepo(id) {
-        $state.go('main.repo', {
-            id
-        }, {
-            reload: true
-        });
-    }
 
     if (!currentPage && !currentRepo) {
         $state.go('main');
@@ -251,46 +298,29 @@ angular.module('githubSearch').controller('repoController', ($scope, githubSearc
         repos = dataFactory.getData('repositories', currentPage);
         $scope.repo = repos[currentRepo];
     }
-    
-    $scope.isRightButtonDisabled = function () {
-        let amount = dataFactory.getItemsAmount('repositories');
-        return currentRepo == amount - 1;
-    }
 
+    $scope.isRightButtonDisabled = function () {
+        return listItemFactory.isRightButtonDisabled(currentRepo, 'repositories');
+    }
     $scope.isLeftButtonDisabled = function () {
-        return currentRepo == 0 && currentPage == 1;
+        return listItemFactory.isLeftButtonDisabled(currentRepo, currentPage);
     }
 
     $scope.goToNextRepo = function () {
-        currentRepo++;
-        if (currentRepo > 29 || currentRepo == repos.length) {
-            githubSearchFactory.getList('repositories', ++currentPage).then(response => {
-                repos = response;
-                changeRepo(repos[0].id);
-            }).catch(error => {
-
-            });
-        } else changeRepo(repos[currentRepo].id);
+        listItemFactory.goToNextItem(currentRepo, currentPage, SIZE_OF_PAGE, repos, 'repositories');
     }
 
     $scope.goToPrevRepo = function () {
-        currentRepo--;
-        if (currentRepo < 0) {
-            githubSearchFactory.getList('repositories', --currentPage).then(response => {
-                repos = response;
-                changeRepo(repos[29].id);
-            })
-        } else changeRepo(repos[currentRepo].id);
+        listItemFactory.goToPreviousItem(currentRepo, currentPage, SIZE_OF_PAGE, repos, 'repositories');
     }
 
-    $scope.goToSearchResults=function(){
-        let word=githubSearchFactory.getSearchWord();
+    $scope.goToSearchResults = function () {
+        let word = githubSearchFactory.getSearchWord();
         $state.go('main.results', {
             query: word,
             page: ''
         });
     }
-
 });
 angular.module('githubSearch').directive('repoDirective',()=>{
     return{
@@ -300,23 +330,29 @@ angular.module('githubSearch').directive('repoDirective',()=>{
       templateUrl:'components/repo/repoView.html'
     }
  });
-angular.module('githubSearch').controller('resultsController', ($scope, githubSearchFactory, dataFactory, $stateParams, $state) => {
-    let query = $stateParams.query;
+angular.module('githubSearch').controller('resultsController', ($scope, items, githubSearchFactory, dataFactory, $stateParams, $state) => {
+    let query = $stateParams.query;       
+
+    $scope.items = items;
+    $scope.loading=true;
+     
+    if (query===undefined)  $state.go('main');
 
     githubSearchFactory.getSearchResult(query).then(response => {
-        if (response.promiseStatus[0]) {
-            dataFactory.setAll(response.users.data, response.repos.data, 
-                               response.issues.data, response.code.data);
+        if (response.promiseStatus[0]) {                                //if we have the previous search word we
+            dataFactory.setAll(response.users.data, response.repos.data,//don't need to reset our data
+                response.issues.data, response.code.data);
         }
         $scope.usersAmount = dataFactory.getItemsTotal('users');
         $scope.reposAmount = dataFactory.getItemsTotal('repositories');
         $scope.issuesAmount = dataFactory.getItemsTotal('issues');
         $scope.codeAmount = dataFactory.getItemsTotal('code');
         $state.go('.list');
+        $scope.loading = false;
     })
 
-    $scope.setTo = function (setList) {
-        githubSearchFactory.setCurrentList(setList);
+    $scope.setTo = function (ListName) {
+        githubSearchFactory.setCurrentListName(ListName);
         $state.go('main.results', {
             query,
             page: ''
@@ -327,7 +363,7 @@ angular.module('githubSearch').controller('resultsController', ($scope, githubSe
     }
 
     $scope.isActive = function (checkList) {
-        return githubSearchFactory.getCurrentList() === checkList;
+        return githubSearchFactory.getCurrentListName() === checkList;
     }
 });
 angular.module('githubSearch').directive('resultsDirective',()=>{
@@ -338,6 +374,24 @@ angular.module('githubSearch').directive('resultsDirective',()=>{
       templateUrl:'components/results/resultsView.html'
     }
  });
+angular.module('githubSearch').value("items", [
+    {
+        name: 'users',
+        amount: 'usersAmount'
+    },
+    {
+        name: 'repositories',
+        amount: 'reposAmount'
+    },
+    {
+        name: 'issues',
+        amount: 'issuesAmount'
+    },
+    {
+        name: 'code',
+        amount: 'codeAmount'
+    }
+]);
 angular.module('githubSearch').controller('searchController', ($scope, githubSearchFactory, $state,dataFactory) => {
     $scope.makeSearch = function () {
         if ($scope.searchRequest !== undefined && $scope.searchRequest !== '') {
@@ -356,7 +410,9 @@ angular.module('githubSearch').directive('searchDirective',()=>{
      templateUrl:'components/search/searchView.html'
    }
 });
-angular.module('githubSearch').controller('userController', ($scope, githubSearchFactory, dataFactory, $state, $stateParams) => {
+angular.module('githubSearch').controller('userController', ($scope,listItemFactory, githubSearchFactory, dataFactory, $state, $stateParams) => {
+    const SIZE_OF_PAGE = 30;
+
     let currentPage,
         currentUser,
         users;
@@ -365,14 +421,6 @@ angular.module('githubSearch').controller('userController', ($scope, githubSearc
     repoName = $stateParams.repo;
    
     [currentPage, currentUser] = dataFactory.getUserArrayAndIndexById(userId);
-
-    function changeUser(id) {
-        $state.go('main.user', {
-            id
-        }, {
-            reload: true
-        });
-    }
 
     if (!currentPage && !currentUser) {
         $state.go('main');
@@ -394,35 +442,19 @@ angular.module('githubSearch').controller('userController', ($scope, githubSearc
     }
 
     $scope.isRightButtonDisabled = function () {
-        let amount = dataFactory.getItemsAmount('users');
-        return currentUser == amount - 1;
+        return listItemFactory.isRightButtonDisabled(currentUser,'users');
     }
 
     $scope.isLeftButtonDisabled = function () {
-        return currentUser == 0 && currentPage == 1;
+        return listItemFactory.isLeftButtonDisabled(currentUser,currentPage);
     }
 
     $scope.goToNextUser = function () {
-        currentUser++;
-        console.log(currentUser);
-        if (currentUser > 29 || currentUser == users.length) {
-            githubSearchFactory.getList('users', ++currentPage).then(response => {
-                users = response;
-                changeUser(users[0].id);
-            }).catch(error => {
-                changeUser($stateParams.id);
-            });
-        } else changeUser(users[currentUser].id);
+        listItemFactory.goToNextItem(currentUser,currentPage,SIZE_OF_PAGE,users,'users');
     }
 
     $scope.goToPrevUser = function () {
-        currentUser--;
-        if (currentUser < 0) {
-            githubSearchFactory.getList('users', --currentPage).then(response => {
-                users = response;
-                changeUser(users[29].id);
-            })
-        } else changeUser(users[currentUser].id);
+        listItemFactory.goToPreviousItem(currentUser,currentPage,SIZE_OF_PAGE,users,'users');
     }
 
     $scope.goToSearchResults=function(){
@@ -433,7 +465,7 @@ angular.module('githubSearch').controller('userController', ($scope, githubSearc
         });
     }
 
-    $scope.goToUser=function(){
+    $scope.backToUser=function(){
         $state.go('main.user', {
             userId,
             repo:''
