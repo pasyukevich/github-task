@@ -1,7 +1,8 @@
 <section class="container">
     <div class="row">
         <aside class="col col-xs-2 col-sm-2">
-            <ul class="list-group">
+            <loading-directive ng-show="loading"></loading-directive>
+            <ul class="list-group" ng-hide="loading">
                 <li class="list-group-item" ng-repeat="item in items" ng-click="setTo(item.name)" ng-class="{selected:isActive(item.name)}">
                     <a href >{{item.name}} <span class="badge">{{$parent[item.amount]||0}}</span></a>
                 </li>
