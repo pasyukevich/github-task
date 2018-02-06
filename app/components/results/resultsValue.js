@@ -5,7 +5,7 @@ angular.module('githubSearch').value("items", [
     },
     {
         name: 'repositories',
-        amount: 'repositoriesAmount'
+        amount: 'reposAmount'
     },
     {
         name: 'issues',

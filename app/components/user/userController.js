@@ -1,5 +1,6 @@
-angular.module('githubSearch').controller('userController', ($scope, githubSearchFactory, dataFactory, $state, $stateParams) => {
+angular.module('githubSearch').controller('userController', ($scope,listItemFactory, githubSearchFactory, dataFactory, $state, $stateParams) => {
     const SIZE_OF_PAGE = 30;
+
     let currentPage,
         currentUser,
         users;
@@ -8,14 +9,6 @@ angular.module('githubSearch').controller('userController', ($scope, githubSearc
     repoName = $stateParams.repo;
    
     [currentPage, currentUser] = dataFactory.getUserArrayAndIndexById(userId);
-
-    function changeUser(id) {
-        $state.go('main.user', {
-            id
-        }, {
-            reload: true
-        });
-    }
 
     if (!currentPage && !currentUser) {
         $state.go('main');
@@ -37,35 +30,19 @@ angular.module('githubSearch').controller('userController', ($scope, githubSearc
     }
 
     $scope.isRightButtonDisabled = function () {
-        let amount = dataFactory.getItemsAmount('users');
-        return currentUser == amount - 1;
+        return listItemFactory.isRightButtonDisabled(currentUser,'users');
     }
 
     $scope.isLeftButtonDisabled = function () {
-        return currentUser == 0 && currentPage == 1;
+        return listItemFactory.isLeftButtonDisabled(currentUser,currentPage);
     }
 
     $scope.goToNextUser = function () {
-        currentUser++;
-        console.log(currentUser);
-        if (currentUser > SIZE_OF_PAGE-1 || currentUser == users.length) {
-            githubSearchFactory.getList('users', ++currentPage).then(response => {
-                users = response;
-                changeUser(users[0].id);
-            }).catch(error => {
-                changeUser($stateParams.id);
-            });
-        } else changeUser(users[currentUser].id);
+        listItemFactory.goToNextItem(currentUser,currentPage,SIZE_OF_PAGE,users,'users');
     }
 
     $scope.goToPrevUser = function () {
-        currentUser--;
-        if (currentUser < 0) {
-            githubSearchFactory.getList('users', --currentPage).then(response => {
-                users = response;
-                changeUser(users[SIZE_OF_PAGE-1].id);
-            })
-        } else changeUser(users[currentUser].id);
+        listItemFactory.goToPreviousItem(currentUser,currentPage,SIZE_OF_PAGE,users,'users');
     }
 
     $scope.goToSearchResults=function(){
@@ -76,7 +53,7 @@ angular.module('githubSearch').controller('userController', ($scope, githubSearc
         });
     }
 
-    $scope.goToUser=function(){
+    $scope.backToUser=function(){
         $state.go('main.user', {
             userId,
             repo:''

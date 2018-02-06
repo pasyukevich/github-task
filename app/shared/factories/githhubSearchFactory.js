@@ -52,7 +52,7 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
             let list = dataFactory.getData(field, page,previous),
                 getProm = $q.defer();
             if (!list) {
-                let url = getListUrl(field, page);
+                let url = getListUrl(field, page,previous);
                 getSearchPromise(url).then(response => {
                     dataFactory.setData(field, page, response.data.items);
                     list = dataFactory.getData(field, page);
