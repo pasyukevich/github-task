@@ -18,7 +18,7 @@ angular.module('githubSearch').controller('repoController', ($scope, listItemFac
     }
 
     $scope.isRightButtonDisabled = function () {
-        return listItemFactory.isRightButtonDisabled(currentRepo, currentPage, 'repositories');
+        return listItemFactory.isRightButtonDisabled(currentRepo, currentPage, SIZE_OF_PAGE, 'repositories');
     }
     $scope.isLeftButtonDisabled = function () {
         return listItemFactory.isLeftButtonDisabled(currentRepo, currentPage);

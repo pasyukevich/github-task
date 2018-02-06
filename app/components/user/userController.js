@@ -30,7 +30,7 @@ angular.module('githubSearch').controller('userController', ($scope, listItemFac
     }
 
     $scope.isRightButtonDisabled = function () {
-        return listItemFactory.isRightButtonDisabled(currentUser, currentPage, 'users');
+        return listItemFactory.isRightButtonDisabled(currentUser, currentPage, SIZE_OF_PAGE, 'users');
     }
 
     $scope.isLeftButtonDisabled = function () {
