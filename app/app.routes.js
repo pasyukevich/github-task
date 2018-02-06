@@ -33,11 +33,3 @@ angular.module('githubSearch').config(function ($stateProvider, $urlRouterProvid
     $urlRouterProvider.when('', '/');
     $urlRouterProvider.otherwise('/NotFound');
 });
-angular.module('githubSearch').run( ($uiRouter)=> {
-    let StateTree = window['ui-router-visualizer'].StateTree;
-    let el = StateTree.create($uiRouter, null, {
-        height: 300,
-        width: 300
-    });
-    el.className = 'statevis';
-});

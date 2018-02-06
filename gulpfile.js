@@ -1,6 +1,5 @@
 const vendor_files = ['./node_modules/angular/angular.js',
   './node_modules/**/ui-bootstrap-tpls.js',
-  './node_modules/**/visualizer.min.js',
   './node_modules/**/angular-ui-router.js',
   './node_modules/**/angular-aria.js',
   './node_modules/**/angular-animate.min.js',
