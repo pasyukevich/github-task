@@ -1,50 +1,3 @@
-let gulp = require('gulp'),
-  inject = require('gulp-inject'),
-  templateCache = require('gulp-angular-templatecache'),
-  clean = require('gulp-clean'),
-  concat = require('gulp-concat'),
-  livereload=require('gulp-livereload'),
-  webserver = require('gulp-webserver');
-gulp.task('default', ['copyVendor','templateRefactoring','concat','copyIndex','copyVendorFonts','copyStyles']);
-gulp.task('copyVendor', (done) => {
-  return gulp.src(vendor_files, {
-    base: './node_modules'
-  }).pipe(gulp.dest('./dist/vendor', {
-    overwrite: true
-  }));
-});
-gulp.task('copyVendorFonts',()=>{
-  return gulp.src(vendor_fonts,{
-    base: './node_modules'
-  }).pipe(gulp.dest('./dist/vendor/',{
-    overwrite:true
-  }));
-});
-gulp.task('copyStyles',()=>{
-  return gulp.src(['css/style.css'],{
-    base: './css'
-  }).pipe(gulp.dest('./dist/app',{
-    overwrite:true
-  }));
-});
-gulp.task('concat', function () {
-  return gulp.src('app/**/*.js')
-    .pipe(concat('bundle.js'))
-    .pipe(gulp.dest('./dist/app'));
-})
-gulp.task('clean', () => {
-  return gulp.src('dist/**', {
-      read: false
-    })
-    .pipe(clean());
-});
-gulp.task('templateRefactoring', () => {
-  return gulp.src('app/**/*.html')
-    .pipe(templateCache('templates.js', {
-      module: 'githubSearch'
-    }))
-    .pipe(gulp.dest('./dist/app'));
-});
 const vendor_files = ['./node_modules/angular/angular.js',
   './node_modules/**/ui-bootstrap-tpls.js',
   './node_modules/**/visualizer.min.js',
@@ -54,6 +7,7 @@ const vendor_files = ['./node_modules/angular/angular.js',
   './node_modules/**/bootstrap.css',
   './node_modules/**/font-awesome.min.css'
 ];
+
 const app_files = ['./dist/app/bundle.js',
   './dist/app/templates.js',
   './dist/app/style.css'
@@ -61,6 +15,63 @@ const app_files = ['./dist/app/bundle.js',
 
 const vendor_fonts=['./node_modules/font-awesome/fonts/**'];
 const app_fonts=[];
+
+let gulp = require('gulp'),
+  inject = require('gulp-inject'),
+  templateCache = require('gulp-angular-templatecache'),
+  clean = require('gulp-clean'),
+  concat = require('gulp-concat'),
+  livereload=require('gulp-livereload'),
+  webserver = require('gulp-webserver');
+
+gulp.task('default', ['copyVendor','templateRefactoring','concat','copyIndex','copyVendorFonts','copyStyles']);
+
+gulp.task('copyVendor', (done) => {
+  return gulp.src(vendor_files, {
+    base: './node_modules'
+  }).pipe(gulp.dest('./dist/vendor', {
+    overwrite: true
+  }));
+});
+
+gulp.task('copyVendorFonts',()=>{
+  return gulp.src(vendor_fonts,{
+    base: './node_modules'
+  }).pipe(gulp.dest('./dist/vendor/',{
+    overwrite:true
+  }));
+});
+
+gulp.task('copyStyles',()=>{
+  return gulp.src(['css/style.css'],{
+    base: './css'
+  }).pipe(gulp.dest('./dist/app',{
+    overwrite:true
+  }));
+});
+
+gulp.task('concat', function () {
+  return gulp.src('app/**/*.js')
+    .pipe(concat('bundle.js'))
+    .pipe(gulp.dest('./dist/app'));
+})
+
+gulp.task('clean', () => {
+  return gulp.src('dist/**', {
+      read: false
+    })
+    .pipe(clean());
+});
+
+gulp.task('templateRefactoring', () => {
+  return gulp.src('app/**/*.html')
+    .pipe(templateCache('templates.js', {
+      module: 'githubSearch'
+    }))
+    .pipe(gulp.dest('./dist/app'));
+});
+
+
 
 gulp.task('copyIndex',['concat','templateRefactoring','copyVendorFonts','copyStyles'], (done) => {
   let vendorSources = gulp.src(vendor_files, {
@@ -90,7 +101,8 @@ gulp.task('webserver', function() {
       fallback: 'index.html',
       livereload:{
         enable:true
-      }
+      },
+      open:true
     }));
 });
 
