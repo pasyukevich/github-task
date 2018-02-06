@@ -19,9 +19,9 @@ angular.module('githubSearch').factory('listItemFactory', ($state,dataFactory,gi
 
     }
     return {
-        isRightButtonDisabled(currentItemNumber,type){
+        isRightButtonDisabled(currentItemNumber,currentPage,type){
             let amount = dataFactory.getItemsAmount(type);
-            return currentItemNumber == amount - 1;
+            return +currentItemNumber+(currentPage-1)*30 == amount - 1;
         },
         isLeftButtonDisabled (cyrrentItemNumber,currentPageNumber) {
             return cyrrentItemNumber == 0 && currentPageNumber == 1;

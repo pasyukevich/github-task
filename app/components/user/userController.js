@@ -1,13 +1,13 @@
-angular.module('githubSearch').controller('userController', ($scope,listItemFactory, githubSearchFactory, dataFactory, $state, $stateParams) => {
+angular.module('githubSearch').controller('userController', ($scope, listItemFactory, githubSearchFactory, dataFactory, $state, $stateParams) => {
     const SIZE_OF_PAGE = 30;
 
     let currentPage,
         currentUser,
         users;
-    
+
     userId = $stateParams.id;
     repoName = $stateParams.repo;
-   
+
     [currentPage, currentUser] = dataFactory.getUserArrayAndIndexById(userId);
 
     if (!currentPage && !currentUser) {
@@ -30,33 +30,33 @@ angular.module('githubSearch').controller('userController', ($scope,listItemFact
     }
 
     $scope.isRightButtonDisabled = function () {
-        return listItemFactory.isRightButtonDisabled(currentUser,'users');
+        return listItemFactory.isRightButtonDisabled(currentUser, currentPage, 'users');
     }
 
     $scope.isLeftButtonDisabled = function () {
-        return listItemFactory.isLeftButtonDisabled(currentUser,currentPage);
+        return listItemFactory.isLeftButtonDisabled(currentUser, currentPage);
     }
 
     $scope.goToNextUser = function () {
-        listItemFactory.goToNextItem(currentUser,currentPage,SIZE_OF_PAGE,users,'users');
+        listItemFactory.goToNextItem(currentUser, currentPage, SIZE_OF_PAGE, users, 'users');
     }
 
     $scope.goToPrevUser = function () {
-        listItemFactory.goToPreviousItem(currentUser,currentPage,SIZE_OF_PAGE,users,'users');
+        listItemFactory.goToPreviousItem(currentUser, currentPage, SIZE_OF_PAGE, users, 'users');
     }
 
-    $scope.goToSearchResults=function(){
-        let word=githubSearchFactory.getSearchWord();
+    $scope.goToSearchResults = function () {
+        let word = githubSearchFactory.getSearchWord();
         $state.go('main.results', {
             query: word,
             page: ''
         });
     }
 
-    $scope.backToUser=function(){
+    $scope.backToUser = function () {
         $state.go('main.user', {
             userId,
-            repo:''
+            repo: ''
         }, {
             reload: true
         });

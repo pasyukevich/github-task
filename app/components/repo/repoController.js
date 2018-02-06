@@ -1,6 +1,6 @@
 angular.module('githubSearch').controller('repoController', ($scope, listItemFactory, githubSearchFactory, dataFactory, $state, $stateParams) => {
     const SIZE_OF_PAGE = 30;
-    
+
     let currentPage,
         currentRepo,
         repos;
@@ -18,7 +18,7 @@ angular.module('githubSearch').controller('repoController', ($scope, listItemFac
     }
 
     $scope.isRightButtonDisabled = function () {
-        return listItemFactory.isRightButtonDisabled(currentRepo, 'repositories');
+        return listItemFactory.isRightButtonDisabled(currentRepo, currentPage, 'repositories');
     }
     $scope.isLeftButtonDisabled = function () {
         return listItemFactory.isLeftButtonDisabled(currentRepo, currentPage);
