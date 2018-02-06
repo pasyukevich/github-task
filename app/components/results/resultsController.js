@@ -7,8 +7,8 @@ angular.module('githubSearch').controller('resultsController', ($scope, items, g
     if (query===undefined)  $state.go('main');
 
     githubSearchFactory.getSearchResult(query).then(response => {
-        if (response.promiseStatus[0]) {                                
-            dataFactory.setAll(response.users.data, response.repos.data,
+        if (response.promiseStatus[0]) {                                //if we have the previous search word we
+            dataFactory.setAll(response.users.data, response.repos.data,//don't need to reset our data
                 response.issues.data, response.code.data);
         }
         $scope.usersAmount = dataFactory.getItemsTotal('users');

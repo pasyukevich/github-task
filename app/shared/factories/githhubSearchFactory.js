@@ -29,7 +29,7 @@ angular.module('githubSearch').factory('githubSearchFactory', ($http, $q, dataFa
           return previous;
         },
         getSearchResult(searchWord) {
-            promiseStatus[0] = false;
+            promiseStatus[0] = false;   // this value display did we make new get request or we use previous
             if (previous !== searchWord) {
                 previous = searchWord;
                 promiseStatus[0] = true;
