@@ -20,6 +20,7 @@
             <ul class="list-group col col-xs-7 col-sm-7">
                 <h2 class="text-center">repos</h2>
                 <loading-directive ng-hide="userRepos"></loading-directive>
+                <h3 ng-show="userRepos.length==0">No repos</h3>
                 <li class="list-group-item" ng-repeat="repo in userRepos">
                     <h3>
                         <a ui-sref="main.user({id:user.id,repo:repo.name,inf:repo})">{{repo.name}}</a>
