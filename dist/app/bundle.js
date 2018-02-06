@@ -36,60 +36,8 @@ angular.module('githubSearch').config(function ($stateProvider, $urlRouterProvid
     $urlRouterProvider.when('', '/');
     $urlRouterProvider.otherwise('/NotFound');
 });
-angular.module('githubSearch').directive('loadingDirective',()=>{
-    return{
-      scope:{},
-      restrict:'E',
-      templateUrl:'components/loading/loadingView.html'
-    }
- });
-angular.module('githubSearch').controller('listController', ($scope, githubSearchFactory, dataFactory, $stateParams, $state) => {
-    const SIZE_OF_PAGE = 30;
-    let currentPage = $stateParams.page || 1,
-        currentList = githubSearchFactory.getCurrentListName();
-
-    $scope.currentListName = githubSearchFactory.getCurrentListName();
-
-    $scope.itemsPerPage = SIZE_OF_PAGE;
-    $scope.currentPage = currentPage;
-    $scope.maxSize = 10;
-    $scope.totalItems = dataFactory.getItemsAmount(currentList);
-
-    if($scope.totalItems==0) $scope.listIsEmpty=true;
-    else $scope.listIsEmpty=false;
-
-    githubSearchFactory.getList(currentList, currentPage).then(response => {
-        $scope[currentList] = response;
-    });
-    
-
-    $scope.nextPage = function () {
-        $state.go('main.results', {
-            query: $stateParams.query,
-            page: $scope.currentPage > 1 ? $scope.currentPage : ''
-        }, {
-            reload: true
-        });
-    }
-
-    $scope.propertyName = '';
-    $scope.reverse = true;
-
-    $scope.sortBy = function (propertyName) {
-        $scope.reverse = ($scope.propertyName === propertyName) ? !$scope.reverse : false;
-        $scope.propertyName = propertyName;
-    };
-});
-angular.module('githubSearch').directive('listDirective',()=>{
-    return{
-      scope:{},
-      restrict:'E',
-      controller:'listController',
-      templateUrl:'components/list/listView.html'
-    }
- });
 angular.module('githubSearch').factory('dataFactory', () => {
-    const MAX_AMOUNT = 1000;
+    const MAX_AMOUNT = 1020;
     let cache = {
         users: {},
         repositories: {},
@@ -251,9 +199,9 @@ angular.module('githubSearch').factory('listItemFactory', ($state,dataFactory,gi
 
     }
     return {
-        isRightButtonDisabled(currentItemNumber,type){
+        isRightButtonDisabled(currentItemNumber,currentPage,type){
             let amount = dataFactory.getItemsAmount(type);
-            return currentItemNumber == amount - 1;
+            return +currentItemNumber+(currentPage-1)*30 == amount - 1;
         },
         isLeftButtonDisabled (cyrrentItemNumber,currentPageNumber) {
             return cyrrentItemNumber == 0 && currentPageNumber == 1;
@@ -280,9 +228,61 @@ angular.module('githubSearch').factory('listItemFactory', ($state,dataFactory,gi
         }
     }
 });
+angular.module('githubSearch').controller('listController', ($scope, githubSearchFactory, dataFactory, $stateParams, $state) => {
+    const SIZE_OF_PAGE = 30;
+    let currentPage = $stateParams.page || 1,
+        currentList = githubSearchFactory.getCurrentListName();
+
+    $scope.currentListName = githubSearchFactory.getCurrentListName();
+
+    $scope.itemsPerPage = SIZE_OF_PAGE;
+    $scope.currentPage = currentPage;
+    $scope.maxSize = 10;
+    $scope.totalItems = dataFactory.getItemsAmount(currentList);
+
+    if($scope.totalItems==0) $scope.listIsEmpty=true;
+    else $scope.listIsEmpty=false;
+
+    githubSearchFactory.getList(currentList, currentPage).then(response => {
+        $scope[currentList] = response;
+    });
+    
+
+    $scope.nextPage = function () {
+        $state.go('main.results', {
+            query: $stateParams.query,
+            page: $scope.currentPage > 1 ? $scope.currentPage : ''
+        }, {
+            reload: true
+        });
+    }
+
+    $scope.propertyName = '';
+    $scope.reverse = true;
+
+    $scope.sortBy = function (propertyName) {
+        $scope.reverse = ($scope.propertyName === propertyName) ? !$scope.reverse : false;
+        $scope.propertyName = propertyName;
+    };
+});
+angular.module('githubSearch').directive('listDirective',()=>{
+    return{
+      scope:{},
+      restrict:'E',
+      controller:'listController',
+      templateUrl:'components/list/listView.html'
+    }
+ });
+angular.module('githubSearch').directive('loadingDirective',()=>{
+    return{
+      scope:{},
+      restrict:'E',
+      templateUrl:'components/loading/loadingView.html'
+    }
+ });
 angular.module('githubSearch').controller('repoController', ($scope, listItemFactory, githubSearchFactory, dataFactory, $state, $stateParams) => {
     const SIZE_OF_PAGE = 30;
-    
+
     let currentPage,
         currentRepo,
         repos;
@@ -300,7 +300,7 @@ angular.module('githubSearch').controller('repoController', ($scope, listItemFac
     }
 
     $scope.isRightButtonDisabled = function () {
-        return listItemFactory.isRightButtonDisabled(currentRepo, 'repositories');
+        return listItemFactory.isRightButtonDisabled(currentRepo, currentPage, 'repositories');
     }
     $scope.isLeftButtonDisabled = function () {
         return listItemFactory.isLeftButtonDisabled(currentRepo, currentPage);
@@ -410,16 +410,16 @@ angular.module('githubSearch').directive('searchDirective',()=>{
      templateUrl:'components/search/searchView.html'
    }
 });
-angular.module('githubSearch').controller('userController', ($scope,listItemFactory, githubSearchFactory, dataFactory, $state, $stateParams) => {
+angular.module('githubSearch').controller('userController', ($scope, listItemFactory, githubSearchFactory, dataFactory, $state, $stateParams) => {
     const SIZE_OF_PAGE = 30;
 
     let currentPage,
         currentUser,
         users;
-    
+
     userId = $stateParams.id;
     repoName = $stateParams.repo;
-   
+
     [currentPage, currentUser] = dataFactory.getUserArrayAndIndexById(userId);
 
     if (!currentPage && !currentUser) {
@@ -442,33 +442,33 @@ angular.module('githubSearch').controller('userController', ($scope,listItemFact
     }
 
     $scope.isRightButtonDisabled = function () {
-        return listItemFactory.isRightButtonDisabled(currentUser,'users');
+        return listItemFactory.isRightButtonDisabled(currentUser, currentPage, 'users');
     }
 
     $scope.isLeftButtonDisabled = function () {
-        return listItemFactory.isLeftButtonDisabled(currentUser,currentPage);
+        return listItemFactory.isLeftButtonDisabled(currentUser, currentPage);
     }
 
     $scope.goToNextUser = function () {
-        listItemFactory.goToNextItem(currentUser,currentPage,SIZE_OF_PAGE,users,'users');
+        listItemFactory.goToNextItem(currentUser, currentPage, SIZE_OF_PAGE, users, 'users');
     }
 
     $scope.goToPrevUser = function () {
-        listItemFactory.goToPreviousItem(currentUser,currentPage,SIZE_OF_PAGE,users,'users');
+        listItemFactory.goToPreviousItem(currentUser, currentPage, SIZE_OF_PAGE, users, 'users');
     }
 
-    $scope.goToSearchResults=function(){
-        let word=githubSearchFactory.getSearchWord();
+    $scope.goToSearchResults = function () {
+        let word = githubSearchFactory.getSearchWord();
         $state.go('main.results', {
             query: word,
             page: ''
         });
     }
 
-    $scope.backToUser=function(){
+    $scope.backToUser = function () {
         $state.go('main.user', {
             userId,
-            repo:''
+            repo: ''
         }, {
             reload: true
         });
