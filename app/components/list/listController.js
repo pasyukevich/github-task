@@ -10,6 +10,9 @@ angular.module('githubSearch').controller('listController', ($scope, githubSearc
     $scope.maxSize = 10;
     $scope.totalItems = dataFactory.getItemsAmount(currentList);
 
+    if($scope.totalItems==0) $scope.listIsEmpty=true;
+    else $scope.listIsEmpty=false;
+
     githubSearchFactory.getList(currentList, currentPage).then(response => {
         $scope[currentList] = response;
     });

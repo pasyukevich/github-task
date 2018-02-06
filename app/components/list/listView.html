@@ -53,6 +53,8 @@
         </ul>
     </div>
 
-    <ul class="pagination-sm" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage" ng-change="nextPage()"
+    <ul class="pagination-sm" ng-hide="listIsEmpty" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage" ng-change="nextPage()"
                 total-items="totalItems" max-size="maxSize" ng-model="currentPage"></ul>
+
+    <h3 ng-show="listIsEmpty">No results</h3>
 </div>
