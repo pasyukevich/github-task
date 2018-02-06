@@ -1,5 +1,5 @@
 angular.module('githubSearch').factory('dataFactory', () => {
-    const MAX_AMOUNT = 1000;
+    const MAX_AMOUNT = 1020;
     let cache = {
         users: {},
         repositories: {},
