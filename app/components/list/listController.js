@@ -16,7 +16,7 @@ angular.module('githubSearch').controller('listController', ($scope, githubSearc
     githubSearchFactory.getList(currentList, currentPage).then(response => {
         $scope[currentList] = response;
     });
-
+    
 
     $scope.nextPage = function () {
         $state.go('main.results', {
@@ -27,8 +27,7 @@ angular.module('githubSearch').controller('listController', ($scope, githubSearc
         });
     }
 
-
-    $scope.propertyName = 'forks';
+    $scope.propertyName = '';
     $scope.reverse = true;
 
     $scope.sortBy = function (propertyName) {

@@ -18,10 +18,27 @@
 
     <div ng-switch-when="repositories">
         <loading-directive ng-hide="repositories"></loading-directive>
-        <button type="button" class="btn btn-primary" ng-show="repositories" ng-click="sortBy('name')">Sort by name</button>
-        <button type="button" class="btn btn-primary" ng-show="repositories" ng-click="sortBy('forks')">Sort by forks</button>
-        <button type="button" class="btn btn-primary" ng-show="repositories" ng-click="sortBy('open_issues')">Sort by open_issues</button>
-        <button type="button" class="btn btn-primary" ng-show="repositories" ng-click="sortBy('size')">Sort by size</button>
+        <div class="btn-group dropdown" ng-show="repositories" uib-dropdown="">
+            <button id="button-template-url" type="button" class="btn btn-primary dropdown-toggle" uib-dropdown-toggle="" ng-disabled="disabled"
+                aria-haspopup="true" aria-expanded="false">
+                Sort
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a href ng-click="sortBy('name')">by name</a>
+                </li>
+                <li>
+                    <a  href ng-click="sortBy('forks')">by forks</a>
+                </li>
+                <li>
+                    <a  href ng-click="sortBy('open_issues')">by open_issues</a>
+                </li>
+                <li>
+                    <a  href ng-click="sortBy('size')">by size</a>
+                </li>
+            </ul>
+        </div>
         <label class="col col-xs-offset-8" ng-show="repositories">Search for:
             <input ng-model="reposSearch.name">
         </label>
@@ -53,8 +70,8 @@
         </ul>
     </div>
 
-    <ul class="pagination-sm" ng-hide="listIsEmpty" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage" ng-change="nextPage()"
-                total-items="totalItems" max-size="maxSize" ng-model="currentPage"></ul>
+    <ul class="pagination-sm" ng-hide="listIsEmpty" uib-pagination boundary-link-numbers="true" items-per-page="itemsPerPage"
+        ng-change="nextPage()" total-items="totalItems" max-size="maxSize" ng-model="currentPage"></ul>
 
     <h3 ng-show="listIsEmpty">No results</h3>
 </div>
